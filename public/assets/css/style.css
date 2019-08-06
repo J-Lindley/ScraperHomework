@@ -1,0 +1,8 @@
+body {
+    background: url(/assets/images/newsprint.jpg) fixed no-repeat 100%;
+    /* background-size: auto; */
+}
+.trailer {
+    display: block;
+    color: red;
+}
