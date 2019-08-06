@@ -1,27 +1,15 @@
-/* eslint-disable max-lines-per-function */
-/* eslint-disable sort-keys */
-/* eslint-disable max-statements */
 const axios = require("axios");
 const cheerio = require("cheerio");
 const express = require("express");
-
 const db = require("../models");
-
 const router = express.Router();
 
-//// Routes
-// get (scrape)
-// get (show db contents)
-// get (show article comments)
-// post (add comment)
-// delete (comment)
+//routes
 
-// GET
-// Root
 router.get("/", (req, res) => {
     res.render("index");
 });
-// Scrape
+// scraper
 router.get("/scrape", (req, res) => {
     const scrapeArray = [];
 
@@ -42,6 +30,7 @@ router.get("/scrape", (req, res) => {
                 summary = $(element).find(".standfirst").html().trim();
             }
             const link = `https://www.theregister.co.uk${stubLink}`;
+
             const section = $(element).find(".section_name").text().trim();
             const $image = $(element).find("img");
             const imageURL = $image.data("src") || $image.attr("src");
@@ -53,14 +42,11 @@ router.get("/scrape", (req, res) => {
                 section: section,
                 link: link
             };
-            // Articles appear mulitple times on the front page with different attributes.  Munge them together for our DB.
             const articleExists = scrapeArray.find((elem, idx) => {
                 if (elem.headline === article.headline) {
-                    // bunch of logical short circuts to pull as much data into the final object as we can.
                     scrapeArray[idx].image = scrapeArray[idx].image || article.image;
                     scrapeArray[idx].summary = scrapeArray[idx].summary || article.summary;
                     scrapeArray[idx].section = scrapeArray[idx].section || article.section;
-                    // the stringObj property is possibly outdated.  Delete it and recreate.
                     Reflect.deleteProperty(scrapeArray[idx], "stringObj");
                     scrapeArray[idx].stringObj = JSON.stringify(scrapeArray[idx]);
 
@@ -80,7 +66,8 @@ router.get("/scrape", (req, res) => {
         res.render("index", hbrs);
     }).catch((error) => { console.log(error) });
 });
-// Saved
+
+
 router.get("/saved", (req, res) => {
     db.Article.find((err, articles) => {
         let hbrs = {};
@@ -95,7 +82,7 @@ router.get("/saved", (req, res) => {
         }
     });
 });
-// Single
+//one article
 router.get("/saved/:id", (req, res) => {
     db.Article.findOne({ _id: req.params.id }).populate("comments")
         .then((article) => {
@@ -103,7 +90,7 @@ router.get("/saved/:id", (req, res) => {
         });
 });
 
-// POST
+//post route
 router.post("/api/save", (req, res) => {
     const article = req.body;
 
@@ -125,48 +112,38 @@ router.post("/api/save", (req, res) => {
             });
         }
     });
-
-    // res.status(200).end()
-    //or
-    // res.status(500).end()
 });
 
 router.post("/saved/:id", (req, res) => {
     console.log(req.body);
     db.Comment.create(req.body).then((doc) => {
-        db.Article.findOne({_id: req.params.id}).then((article) => {
+        db.Article.findOne({ _id: req.params.id }).then((article) => {
             article.comments.push(doc);
             article.save();
             res.json(doc)
         });
     });
 });
-// Puts
-// remove comment id from article and delete comment
+
+//put route
 router.put("/saved/:id", (req, res) => {
     const cID = req.body.commentID
     console.log(req.body);
-    db.Article.updateOne({_id: req.params.id}, {$pull: {comments: cID}}).
+    db.Article.updateOne({ _id: req.params.id }, { $pull: { comments: cID } }).
         then((doc) => {
             console.log(doc)
         });
-    db.Comment.deleteOne({_id: cID}).then((qRes) => {
+    db.Comment.deleteOne({ _id: cID }).then((qRes) => {
         console.log(qRes);
         res.send(qRes);
     })
 });
 
-// Deletes
-// delete article and all associated comments
+// delete route
 router.delete("/saved/:id", (req, res) => {
     db.Article.findOne({ _id: req.params.id }).then((article) => {
         if (article.comments.length) {
-            // article.comments.forEach((element) => {
-            //     db.Comment.deleteOne({_id: element._id}).then((doc) => {
-            //         console.log(doc);
-            //     });
-            // });
-            db.Comment.deleteMany({_id: {$in: article.comments}}).then((qRes) => {
+            db.Comment.deleteMany({ _id: { $in: article.comments } }).then((qRes) => {
                 console.log(qRes);
             });
         }

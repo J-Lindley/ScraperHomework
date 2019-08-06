@@ -1,7 +1,4 @@
-/* eslint-disable max-lines-per-function */
 $(() => {
-    // index.handlebars
-    // save article
     $(".save-btn").on("click", (event) => {
         const $btn = $(event.target);
         const id = $btn.data("id");
@@ -11,8 +8,6 @@ $(() => {
             done((res) => { console.log(res); });
     });
 
-    // saved.handlebars
-    //show notes modal
     $(".notes-btn").on("click", (event) => {
         const $btn = $(event.target);
         const id = $btn.data("id");
@@ -41,7 +36,6 @@ $(() => {
         });
     });
 
-    // delete article
     $(".article-delete").on("click", (event) => {
         const id = $(event.target).data("id");
 
@@ -49,19 +43,18 @@ $(() => {
             method: "DELETE"
         }).then((response) => {
             console.log(response);
-            // $(`#${response._id}`).remove();
+
             location.reload();
         });
     });
 
-    // delete comment - instantiated as a body click event because the .comment-delete buttons don't exist yet.
     $("body").on("click", ".comment-delete", (event) => {
         const commentID = $(event.target).data("id");
         const articleID = $("#comments").data("id");
 
         console.log(commentID);
         console.log(articleID);
-        // PUT instead of DELETE, because we're updating the Article when we delete the comment.
+
         $.ajax(`/saved/${articleID}`, {
             method: "PUT",
             data: { commentID }
@@ -73,7 +66,6 @@ $(() => {
         });
     });
 
-    // saved.handlebars comments modal
     $("#comment-form").on("submit", (event) => {
         event.preventDefault();
         const comment = $("textarea").val();
