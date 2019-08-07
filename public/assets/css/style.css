@@ -1,9 +1,6 @@
 body {
     
     background: url(/assets/images/newsprint.jpg) fixed no-repeat 100%;
+    position: center;
     
-}
-.trailer {
-    display: block;
-    color: red;
 }
